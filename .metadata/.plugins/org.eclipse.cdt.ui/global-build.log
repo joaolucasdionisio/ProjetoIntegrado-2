@@ -1,7 +1,24 @@
-08:43:07 **** Incremental Build of configuration Debug for project stm32 ****
-make -j4 all 
+19:13:01 **** Incremental Build of configuration Debug for project stm32 ****
+make -j12 all 
 arm-none-eabi-size   stm32.elf 
    text	   data	    bss	    dec	    hex	filename
-  36872	    488	   6176	  43536	   aa10	stm32.elf
+  45128	    852	   6172	  52152	   cbb8	stm32.elf
 Finished building: default.size.stdout
+ 
+19:13:07 **** Incremental Build of configuration Debug for project stm32 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32F103xB -DDEBUG -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "stm32.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\ryanm\Downloads\ProjetoIntegrado-2\stm32\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="stm32.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: stm32.elf
+ 
+arm-none-eabi-objdump -h -S  stm32.elf  > "stm32.list"
+arm-none-eabi-objcopy  -O binary  stm32.elf  "stm32.bin"
+arm-none-eabi-size   stm32.elf 
+   text	   data	    bss	    dec	    hex	filename
+  45144	    852	   6172	  52168	   cbc8	stm32.elf
+Finished building: default.size.stdout
+ 
+Finished building: stm32.bin
+ 
+Finished building: stm32.list
  

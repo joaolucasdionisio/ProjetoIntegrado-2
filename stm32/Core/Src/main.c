@@ -35,14 +35,14 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define ADC_CANAL_POTENCIOMETRO hadc1
-#define FILTRO_GPIO_PORT       GPIOA
-#define FILTRO_GPIO_PIN        GPIO_PIN_1
+#define FILTRO_GPIO_PORT        GPIOA
+#define FILTRO_GPIO_PIN         GPIO_PIN_10
 
-#define ADC_RESOLUCAO_MAX      4095.0f
-#define LUX_ESCALA_MAX         1000.0f
+#define ADC_RESOLUCAO_MAX       4095.0f
+#define LUX_ESCALA_MAX          1000.0f
 
-#define TAMANHO_FILTRO_MEDIA   5
-#define DELAY_AMOSTRAGEM_MS    500
+#define TAMANHO_FILTRO_MEDIA    5
+#define DELAY_AMOSTRAGEM_MS     500
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -108,32 +108,32 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_ADC_Start(&ADC_CANAL_POTENCIOMETRO);
-	  if (HAL_ADC_PollForConversion(&ADC_CANAL_POTENCIOMETRO, 10) == HAL_OK)
-	        {
-	            uint16_t adc_bruto = HAL_ADC_GetValue(&ADC_CANAL_POTENCIOMETRO);
+      HAL_ADC_Start(&ADC_CANAL_POTENCIOMETRO);
+      if (HAL_ADC_PollForConversion(&ADC_CANAL_POTENCIOMETRO, 10) == HAL_OK)
+      {
+          uint16_t adc_bruto = HAL_ADC_GetValue(&ADC_CANAL_POTENCIOMETRO);
 
-	            // 2. Conversão da leitura do PA0 para Luminosidade (0.0 a 1000.0 Lux)
-	            float lux_bruto = ((float)adc_bruto / ADC_RESOLUCAO_MAX) * LUX_ESCALA_MAX;
-	            float lux_final = lux_bruto;
+          // Conversão da leitura do PA0 para Luminosidade (0.0 a 1000.0 Lux)
+          float lux_bruto = ((float)adc_bruto / ADC_RESOLUCAO_MAX) * LUX_ESCALA_MAX;
+          float lux_final = lux_bruto;
 
-	            // 3. Leitura da GPIO PA1: Se HIGH (3.3V), aplica o Filtro de Média Móvel
-	            if (HAL_GPIO_ReadPin(FILTRO_GPIO_PORT, FILTRO_GPIO_PIN) == GPIO_PIN_SET)
-	            {
-	                lux_final = AplicarFiltroLuminosidade(lux_bruto);
-	            }
+          // Leitura da GPIO PA10: Se HIGH (3.3V), aplica o Filtro de Média Móvel
+          if (HAL_GPIO_ReadPin(FILTRO_GPIO_PORT, FILTRO_GPIO_PIN) == GPIO_PIN_SET)
+          {
+              lux_final = AplicarFiltroLuminosidade(lux_bruto);
+          }
 
-	            // 4. Serialização: Formata o float em string legível com quebra de linha ('\n')
-	            char buffer[32];
-	            int tamanho_msg = sprintf(buffer, "%.1f\n", lux_final);
+          // Serialização: Formata o float em string legível com quebra de linha ('\n')
+          char buffer[32];
+          int tamanho_msg = sprintf(buffer, "%.1f\n", lux_final);
 
-	            // 5. Envio pela USB CDC para o computador
-	            CDC_Transmit_FS((uint8_t*)buffer, tamanho_msg);
-	        }
-	        HAL_ADC_Stop(&ADC_CANAL_POTENCIOMETRO);
+          // Envio pela USB CDC para o computador
+          CDC_Transmit_FS((uint8_t*)buffer, tamanho_msg);
+      }
+      HAL_ADC_Stop(&ADC_CANAL_POTENCIOMETRO);
 
-	        // Cadência controlada de amostragem
-	        HAL_Delay(DELAY_AMOSTRAGEM_MS);
+      // Cadência controlada de amostragem
+      HAL_Delay(DELAY_AMOSTRAGEM_MS);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -142,7 +142,7 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
+  * @brief System Clock Configuration (Configurado conforme a imagem do STM32CubeMX)
   * @retval None
   */
 void SystemClock_Config(void)
@@ -151,35 +151,39 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
+  /** Configura os osciladores RCC para HSE (8 MHz) com PLL Mul x6 -> SYSCLK = 48 MHz
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6; // HSE (8MHz) * 6 = 48MHz
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB buses clocks
+
+  /** Configura os divisores de barramento (HCLK = 48MHz, APB1 = 24MHz, APB2 = 48MHz)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;  // HCLK = 48 MHz
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;    // PCLK1 = 24 MHz
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;    // PCLK2 = 48 MHz
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
+
+  /** Configura o Prescaler do ADC (/4 -> 12 MHz) e USB (/1 -> 48 MHz)
+  */
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_USB;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4; // 48MHz / 4 = 12MHz para o ADC
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL; // USB = 48MHz
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -276,7 +280,6 @@ float AplicarFiltroLuminosidade(float nova_leitura) {
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
@@ -285,18 +288,9 @@ void Error_Handler(void)
 }
 
 #ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

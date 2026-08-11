@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Luminosidade</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="marca" aria-hidden="true">L</div>
+    <div>
+      <h1>Monitor de Luminosidade</h1>
+      <p>Acompanhamento das medições em tempo real</p>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    <p id="mensagem-erro" class="mensagem-erro" role="alert" hidden></p>
+
+    <section class="resumo" aria-label="Estado atual">
+      <article class="card card-luminosidade">
+        <span class="rotulo">Luminosidade atual</span>
+        <strong id="luminosidade-atual" class="valor">-- <small>lux</small></strong>
+      </article>
+
+      <article id="card-status" class="card card-status status-sem-dados">
+        <span class="rotulo">Classificação da IA</span>
+        <div class="classificacao">
+          <span class="indicador" aria-hidden="true"></span>
+          <strong id="classificacao-atual">Aguardando medição</strong>
+        </div>
+      </article>
+
+      <article class="card card-horario">
+        <span class="rotulo">Última atualização</span>
+        <strong id="ultima-atualizacao">--</strong>
+      </article>
+    </section>
+
+    <section class="card historico">
+      <div class="titulo-secao">
+        <div>
+          <h2>Histórico de medições</h2>
+          <p>Últimas leituras recebidas pelo servidor</p>
+        </div>
+        <span id="conexao" class="conexao" aria-live="polite">Conectando...</span>
+      </div>
+
+      <div class="tabela-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Luminosidade</th>
+              <th>Classificação</th>
+            </tr>
+          </thead>
+          <tbody id="historico-corpo"></tbody>
+        </table>
+        <p id="sem-medicoes" class="sem-medicoes">Nenhuma medição recebida.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
