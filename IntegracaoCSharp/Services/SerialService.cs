@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IO.Ports;
 
 namespace IntegracaoCSharp.Services;
@@ -11,7 +10,6 @@ public class SerialService : IDisposable
     {
         _portaSerial = new SerialPort(nomePorta, 115200)
         {
-            NewLine = "\n",
             ReadTimeout = 2000
         };
     }
@@ -34,19 +32,36 @@ public class SerialService : IDisposable
         _portaSerial.Open();
     }
 
-    public string LerLinha()
+    public (byte[] Bytes, double Luminosidade, bool FiltroLigado) LerPacote()
     {
-        return _portaSerial.ReadLine().Trim();
-    }
+        while (true)
+        {
+            int inicio = _portaSerial.ReadByte();
 
-    public static bool TentarConverterLeitura(string leitura, out double valor)
-    {
-        return double.TryParse(
-            leitura,
-            NumberStyles.Float,
-            CultureInfo.InvariantCulture,
-            out valor)
-            && double.IsFinite(valor);
+            if (inicio != 0xAA)
+            {
+                continue;
+            }
+
+            byte[] pacote = new byte[5];
+            pacote[0] = (byte)inicio;
+
+            for (int i = 1; i < pacote.Length; i++)
+            {
+                pacote[i] = (byte)_portaSerial.ReadByte();
+            }
+
+            if (pacote[4] != 0x55 || (pacote[3] != 0x00 && pacote[3] != 0x01))
+            {
+                continue;
+            }
+
+            int valorInteiro = (pacote[1] << 8) | pacote[2];
+            double luminosidade = valorInteiro / 10.0;
+            bool filtroLigado = pacote[3] == 0x01;
+
+            return (pacote, luminosidade, filtroLigado);
+        }
     }
 
     public void Dispose()

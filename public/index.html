@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monitor de Luminosidade</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
   <header class="cabecalho">
@@ -17,6 +19,14 @@
 
   <main class="conteudo">
     <p id="mensagem-erro" class="mensagem-erro" role="alert" hidden></p>
+
+    <aside id="alerta-critico" class="alerta-critico" role="alert" aria-live="assertive" hidden>
+      <span class="alerta-icone" aria-hidden="true">!</span>
+      <div>
+        <strong>Atenção: alta luminosidade</strong>
+        <p>A leitura atual atingiu uma classificação crítica.</p>
+      </div>
+    </aside>
 
     <section class="resumo" aria-label="Estado atual">
       <article class="card card-luminosidade">
@@ -36,6 +46,38 @@
         <span class="rotulo">Última atualização</span>
         <strong id="ultima-atualizacao">--</strong>
       </article>
+    </section>
+
+    <section class="estatisticas" aria-label="Estatísticas das medições">
+      <article class="card card-estatistica">
+        <span class="rotulo">Média</span>
+        <strong id="media-medicoes" class="valor-estatistica">-- <small>lux</small></strong>
+      </article>
+      <article class="card card-estatistica">
+        <span class="rotulo">Máximo</span>
+        <strong id="maximo-medicoes" class="valor-estatistica">-- <small>lux</small></strong>
+      </article>
+      <article class="card card-estatistica">
+        <span class="rotulo">Mínimo</span>
+        <strong id="minimo-medicoes" class="valor-estatistica">-- <small>lux</small></strong>
+      </article>
+      <article class="card card-estatistica card-tendencia">
+        <span class="rotulo">Tendência (últimas 5)</span>
+        <strong id="tendencia-medicoes" class="tendencia tendencia-estavel">Aguardando dados</strong>
+      </article>
+    </section>
+
+    <section class="card grafico-secao" aria-labelledby="titulo-grafico">
+      <div class="titulo-secao">
+        <div>
+          <h2 id="titulo-grafico">Evolução da luminosidade</h2>
+          <p>Últimas medições disponíveis, em ordem cronológica</p>
+        </div>
+      </div>
+      <div class="grafico-container">
+        <canvas id="grafico-luminosidade" aria-label="Gráfico da luminosidade ao longo do tempo" role="img"></canvas>
+      </div>
+      <p id="grafico-sem-dados" class="sem-medicoes">Aguardando medições para montar o gráfico.</p>
     </section>
 
     <section class="card historico">
@@ -63,6 +105,5 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
 </body>
 </html>

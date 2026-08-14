@@ -1,7 +1,8 @@
 const express = require("express");
-const { execFile } = require("child_process");
+const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const readline = require("readline");
 
 const app = express();
 const PORTA = 5000;
@@ -23,55 +24,80 @@ const comandoPython = fs.existsSync(pythonDoAmbienteVirtual)
 app.use(express.json());
 app.use(express.static(path.join(caminhoProjeto, "public")));
 
+let processoPython;
+const requisicoesPython = [];
+
+function rejeitarRequisicoesPython(mensagem) {
+  while (requisicoesPython.length > 0) {
+    requisicoesPython.shift().reject(new Error(mensagem));
+  }
+}
+
+function iniciarClassificador() {
+  if (!fs.existsSync(caminhoScriptPython)) {
+    throw new Error("Script Python não encontrado.");
+  }
+
+  processoPython = spawn(comandoPython, [caminhoScriptPython], {
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+
+  readline.createInterface({ input: processoPython.stdout }).on("line", (linha) => {
+    const requisicao = requisicoesPython.shift();
+    if (!requisicao) return;
+
+    try {
+      const resultado = JSON.parse(linha);
+      if (resultado.status !== "sucesso") {
+        requisicao.reject(new Error(
+          resultado.mensagem || "Erro ao executar o classificador Python."
+        ));
+      } else if (
+        typeof resultado.luminosidade !== "number" ||
+        typeof resultado.classificacao !== "string"
+      ) {
+        requisicao.reject(new Error("Resposta incompleta do classificador Python."));
+      } else {
+        requisicao.resolve(resultado);
+      }
+    } catch {
+      requisicao.reject(new Error("O Python não retornou um JSON válido."));
+    }
+  });
+
+  processoPython.stderr.on("data", (dados) => {
+    console.error(`Python: ${dados.toString().trim()}`);
+  });
+  processoPython.on("error", (erro) => {
+    rejeitarRequisicoesPython(
+      erro.code === "ENOENT" ? "Python não encontrado." : "Erro ao iniciar o Python."
+    );
+  });
+  processoPython.on("exit", () => {
+    processoPython = undefined;
+    rejeitarRequisicoesPython("O processo Python foi encerrado.");
+  });
+}
+
 function executarClassificador(valor) {
   return new Promise((resolve, reject) => {
-    if (!fs.existsSync(caminhoScriptPython)) {
-      reject(new Error("Script Python não encontrado."));
-      return;
+    if (!processoPython || processoPython.exitCode !== null) {
+      try {
+        iniciarClassificador();
+      } catch (erro) {
+        reject(erro);
+        return;
+      }
     }
 
-    execFile(
-      comandoPython,
-      [caminhoScriptPython, String(valor)],
-      { timeout: 10000 },
-      (erro, stdout) => {
-        let resultado;
+    requisicoesPython.push({ resolve, reject });
+    processoPython.stdin.write(`${valor}\n`, (erro) => {
+      if (!erro) return;
 
-        try {
-          resultado = JSON.parse(stdout.trim());
-        } catch {
-          let mensagem = "O Python não retornou um JSON válido.";
-
-          if (erro?.code === "ENOENT") {
-            mensagem = "Python não encontrado.";
-          } else if (erro) {
-            mensagem = "Erro ao executar o classificador Python.";
-          }
-
-          reject(
-            new Error(mensagem)
-          );
-          return;
-        }
-
-        if (erro || resultado.status !== "sucesso") {
-          reject(
-            new Error(resultado.mensagem || "Erro ao executar o classificador Python.")
-          );
-          return;
-        }
-
-        if (
-          typeof resultado.luminosidade !== "number" ||
-          typeof resultado.classificacao !== "string"
-        ) {
-          reject(new Error("Resposta incompleta do classificador Python."));
-          return;
-        }
-
-        resolve(resultado);
-      }
-    );
+      const indice = requisicoesPython.findIndex((item) => item.resolve === resolve);
+      if (indice >= 0) requisicoesPython.splice(indice, 1);
+      reject(new Error("Erro ao enviar a medição ao Python."));
+    });
   });
 }
 
@@ -140,6 +166,8 @@ app.use((erro, req, res, next) => {
     mensagem: "Erro interno do servidor."
   });
 });
+
+iniciarClassificador();
 
 app.listen(PORTA, () => {
   console.log(`Servidor disponível em http://localhost:${PORTA}`);

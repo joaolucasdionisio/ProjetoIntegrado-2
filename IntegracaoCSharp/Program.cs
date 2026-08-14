@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO.Ports;
+using System.Threading.Channels;
 using IntegracaoCSharp.Models;
 using IntegracaoCSharp.Services;
 
@@ -60,31 +61,44 @@ try
     serialService.Abrir();
     Console.WriteLine($"Porta {nomePorta} aberta a 115200 baud.");
     Console.WriteLine($"API: {baseUrl}");
+    var medicoesPendentes = Channel.CreateBounded<Medicao>(
+        new BoundedChannelOptions(1)
+        {
+            SingleReader = true,
+            SingleWriter = true,
+            FullMode = BoundedChannelFullMode.DropOldest
+        });
+
+    _ = Task.Run(async () =>
+    {
+        await foreach (Medicao medicao in medicoesPendentes.Reader.ReadAllAsync())
+        {
+            Console.WriteLine(
+                $"Valor enviado: {medicao.Valor.ToString(CultureInfo.InvariantCulture)}");
+            RespostaMedicao? resposta = await apiService.EnviarMedicaoAsync(medicao);
+            if (resposta is not null)
+            {
+                Console.WriteLine($"Classificação retornada: {resposta.Classificacao}");
+            }
+        }
+    });
     Console.WriteLine("Aguardando medições. Pressione Ctrl+C para encerrar.");
 
     while (true)
     {
         try
         {
-            string leitura = serialService.LerLinha();
-            Console.WriteLine($"Leitura recebida: {leitura}");
+            var pacote = serialService.LerPacote();
+            string bytesHexadecimais = string.Join(" ",
+                pacote.Bytes.Select(valor => valor.ToString("X2")));
 
-            if (!SerialService.TentarConverterLeitura(leitura, out double valor))
-            {
-                Console.WriteLine("Leitura inválida. O dado não será enviado.");
-                continue;
-            }
-
-            Medicao medicao = new Medicao { Valor = valor };
+            Console.WriteLine($"Pacote: {bytesHexadecimais}");
             Console.WriteLine(
-                $"Valor enviado: {medicao.Valor.ToString(CultureInfo.InvariantCulture)}");
+                $"Leitura recebida: {pacote.Luminosidade.ToString("F1", CultureInfo.InvariantCulture)} lux");
+            Console.WriteLine($"Filtro: {(pacote.FiltroLigado ? "ligado" : "desligado")}");
 
-            RespostaMedicao? resposta = await apiService.EnviarMedicaoAsync(medicao);
-
-            if (resposta is not null)
-            {
-                Console.WriteLine($"Classificação retornada: {resposta.Classificacao}");
-            }
+            Medicao medicao = new Medicao { Valor = pacote.Luminosidade };
+            medicoesPendentes.Writer.TryWrite(medicao);
         }
         catch (TimeoutException)
         {

@@ -70,6 +70,89 @@ body {
   margin-bottom: 24px;
 }
 
+.estatisticas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card-estatistica {
+  padding: 20px;
+}
+
+.valor-estatistica,
+.tendencia {
+  display: block;
+  color: var(--verde-escuro);
+  font-size: 24px;
+}
+
+.valor-estatistica small {
+  font-size: 14px;
+}
+
+.tendencia {
+  font-size: 20px;
+}
+
+.tendencia-crescendo {
+  color: var(--verde);
+}
+
+.tendencia-diminuindo {
+  color: var(--vermelho);
+}
+
+.tendencia-estavel {
+  color: var(--texto-suave);
+}
+
+.alerta-critico {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--vermelho);
+  border-left: 6px solid var(--vermelho);
+  border-radius: 12px;
+  color: #842929;
+  background: var(--vermelho-claro);
+  box-shadow: var(--sombra);
+}
+
+.alerta-critico[hidden] {
+  display: none;
+}
+
+.alerta-critico p {
+  margin: 3px 0 0;
+  font-size: 14px;
+}
+
+.alerta-icone {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--branco);
+  font-size: 22px;
+  font-weight: 800;
+  background: var(--vermelho);
+}
+
+.grafico-secao {
+  margin-bottom: 24px;
+}
+
+.grafico-container {
+  position: relative;
+  height: 320px;
+}
+
 .card {
   padding: 24px;
   border: 1px solid var(--borda);
@@ -250,6 +333,10 @@ th {
   .resumo {
     grid-template-columns: 1fr;
   }
+
+  .estatisticas {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 560px) {
@@ -268,6 +355,15 @@ th {
 
   .card {
     padding: 18px;
+  }
+
+  .estatisticas {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .grafico-container {
+    height: 260px;
   }
 
   .titulo-secao {

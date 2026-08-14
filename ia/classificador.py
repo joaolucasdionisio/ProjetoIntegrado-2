@@ -2,16 +2,6 @@ import sys
 import json
 from sklearn.tree import DecisionTreeClassifier
 
-if len(sys.argv) < 2:
-    print(json.dumps({"status": "erro", "mensagem": "Parâmetro de luminosidade não fornecido"}))
-    sys.exit(1)
-
-try:
-    valor_lux = float(sys.argv[1])
-except ValueError:
-    print(json.dumps({"status": "erro", "mensagem": "O valor informado deve ser numérico"}))
-    sys.exit(1)
-
 x = [
     [0.0], [12.5], [25.0], [40.0], [55.5], [78.0], [100.0], [120.4], [145.0], [170.0],
     [195.2], [220.0], [245.0], [270.8], [295.0],
@@ -38,12 +28,23 @@ y = [
 classificador = DecisionTreeClassifier()
 classificador.fit(x, y)
 
-predicao = classificador.predict([[valor_lux]])[0]
+def classificar(valor_texto):
+    try:
+        valor_lux = float(valor_texto)
+    except (TypeError, ValueError):
+        return {"status": "erro", "mensagem": "O valor informado deve ser numérico"}
 
-resultado = {
-    "status": "sucesso",
-    "luminosidade": valor_lux,
-    "classificacao": predicao
-}
+    predicao = classificador.predict([[valor_lux]])[0]
+    return {
+        "status": "sucesso",
+        "luminosidade": valor_lux,
+        "classificacao": predicao
+    }
 
-print(json.dumps(resultado))
+
+if len(sys.argv) >= 2:
+    print(json.dumps(classificar(sys.argv[1])), flush=True)
+else:
+    # Uma medição por linha; imports e modelo permanecem carregados.
+    for linha in sys.stdin:
+        print(json.dumps(classificar(linha.strip())), flush=True)
