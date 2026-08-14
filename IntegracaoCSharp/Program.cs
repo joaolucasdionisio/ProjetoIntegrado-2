@@ -3,10 +3,53 @@ using System.IO.Ports;
 using IntegracaoCSharp.Models;
 using IntegracaoCSharp.Services;
 
-const string portaPadrao = "COM3";
 const string urlPadrao = "http://localhost:5000/";
 
-string nomePorta = args.Length > 0 ? args[0] : portaPadrao;
+string[] portasDisponiveis = SerialPort.GetPortNames();
+
+if (portasDisponiveis.Length == 0)
+{
+    Console.WriteLine("Nenhuma Porta COM encontrada.");
+    return;
+}
+
+Array.Sort(portasDisponiveis, StringComparer.OrdinalIgnoreCase);
+
+string nomePorta;
+
+if (portasDisponiveis.Length == 1)
+{
+    nomePorta = portasDisponiveis[0];
+    Console.WriteLine($"Portas encontradas: {nomePorta}");
+    Console.WriteLine($"Porta selecionada automaticamente: {nomePorta}");
+}
+else
+{
+    Console.WriteLine("Portas disponíveis:");
+
+    for (int i = 0; i < portasDisponiveis.Length; i++)
+    {
+        Console.WriteLine($"{i + 1} - {portasDisponiveis[i]}");
+    }
+
+    while (true)
+    {
+        Console.Write("Selecione a porta: ");
+        string? entrada = Console.ReadLine();
+
+        if (int.TryParse(entrada, out int opcao)
+            && opcao >= 1
+            && opcao <= portasDisponiveis.Length)
+        {
+            nomePorta = portasDisponiveis[opcao - 1];
+            Console.WriteLine($"Porta selecionada: {nomePorta}");
+            break;
+        }
+
+        Console.WriteLine("Seleção inválida. Digite o número de uma porta disponível.");
+    }
+}
+
 string baseUrl = args.Length > 1 ? args[1] : urlPadrao;
 
 try

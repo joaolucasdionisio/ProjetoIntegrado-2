@@ -58,8 +58,8 @@ all: main-build
 main-build: stm32.elf secondary-outputs
 
 # Tool invocations
-stm32.elf: $(OBJS) $(USER_OBJS) C:\Users\ryanm\Downloads\ProjetoIntegrado-2\stm32\STM32F103C8TX_FLASH.ld
-	arm-none-eabi-gcc -o "stm32.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\ryanm\Downloads\ProjetoIntegrado-2\stm32\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="stm32.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+stm32.elf: $(OBJS) $(USER_OBJS) ../STM32F103C8TX_FLASH.ld
+	arm-none-eabi-gcc -o "stm32.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"../STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="stm32.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
