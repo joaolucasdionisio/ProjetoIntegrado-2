@@ -7,6 +7,9 @@ Projeto escolar desenvolvido para coletar, transmitir, classificar e exibir medi
 - João Lucas Dionísio
 - Ryan Mizael
 
+  Link do vídeo do Projeto:
+  - https://youtu.be/Ow9x-3E58Rw?si=UdcXoYxlrlfzaKf7
+
 ## Funcionamento do sistema
 
 O STM32 realiza a leitura analógica do sensor ou potenciômetro e converte o valor para luminosidade. A medição é enviada pela conexão USB CDC e recebida na Porta COM pela aplicação C#. Em seguida, o C# trata os dados, converte a medição para JSON e a envia por HTTP para a API Node.js.
