@@ -32,7 +32,7 @@
 #define LUX_ESCALA_MAX          1000.0f
 
 #define TAMANHO_FILTRO_MEDIA    5
-#define DELAY_AMOSTRAGEM_MS     2000
+#define DELAY_AMOSTRAGEM_MS     1000
 
 /* Protocolo serial */
 #define INICIO_PACOTE           0xAA

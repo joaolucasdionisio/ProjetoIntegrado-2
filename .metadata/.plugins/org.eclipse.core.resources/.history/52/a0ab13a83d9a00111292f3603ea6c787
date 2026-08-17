@@ -51,9 +51,6 @@ ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN PV */
 
-/* Espelho temporario para inspecao no debugger: 0 = LOW, 1 = HIGH. */
-volatile uint8_t filtro_gpio_nivel = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
