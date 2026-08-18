@@ -4,7 +4,7 @@ using System.Threading.Channels;
 using IntegracaoCSharp.Models;
 using IntegracaoCSharp.Services;
 
-const string urlPadrao = "http://localhost:5000/";
+const string urlPadrao = "https://projeto-integrado-2-ivory.vercel.app/";
 
 string[] portasDisponiveis = SerialPort.GetPortNames();
 
